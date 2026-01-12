@@ -1,0 +1,185 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "main": "server.js",
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongoose": "^8.0.0",
+    "cors": "^2.8.5"
+  }
+}
+const mongoose = require("mongoose");
+
+const employeeSchema = new mongoose.Schema({
+  name: String,
+  email: String,
+  salary: Number
+});
+
+module.exports = mongoose.model("Employee", employeeSchema);
+const express = require("express");
+const Employee = require("../models/Employee");
+const router = express.Router();
+
+// Create Employee
+router.post("/", async (req, res) => {
+  const emp = new Employee(req.body);
+  await emp.save();
+  res.json(emp);
+});
+
+// Get All Employees
+router.get("/", async (req, res) => {
+  const employees = await Employee.find();
+  res.json(employees);
+});
+
+// Update Employee
+router.put("/:id", async (req, res) => {
+  const emp = await Employee.findByIdAndUpdate(
+    req.params.id,
+    req.body,
+    { new: true }
+  );
+  res.json(emp);
+});
+
+// Delete Employee
+router.delete("/:id", async (req, res) => {
+  await Employee.findByIdAndDelete(req.params.id);
+  res.json({ message: "Employee Deleted" });
+});
+
+module.exports = router;
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
+
+const app = express();
+app.use(express.json());
+app.use(cors());
+
+mongoose.connect("mongodb://127.0.0.1:27017/ems");
+
+app.use("/employees", require("./routes/employeeRoutes"));
+
+app.listen(5000, () => {
+  console.log("Server running on port 5000");
+});
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
+
+const app = express();
+app.use(express.json());
+app.use(cors());
+
+mongoose.connect("mongodb://127.0.0.1:27017/ems");
+
+app.use("/employees", require("./routes/employeeRoutes"));
+
+app.listen(5000, () => {
+  console.log("Server running on port 5000");
+});
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
+
+const app = express();
+app.use(express.json());
+app.use(cors());
+
+mongoose.connect("mongodb://127.0.0.1:27017/ems");
+
+app.use("/employees", require("./routes/employeeRoutes"));
+
+app.listen(5000, () => {
+  console.log("Server running on port 5000");
+});
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App";
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<App />);
+import axios from "axios";
+
+export default axios.create({
+  baseURL: "http://localhost:5000/employees"
+});
+import { useState } from "react";
+import api from "./api";
+
+function EmployeeForm({ refresh }) {
+  const [emp, setEmp] = useState({
+    name: "",
+    email: "",
+    salary: ""
+  });
+
+  const submit = async () => {
+    await api.post("/", emp);
+    setEmp({ name: "", email: "", salary: "" });
+    refresh();
+  };
+
+  return (
+    <div>
+      <input placeholder="Name"
+        onChange={e => setEmp({ ...emp, name: e.target.value })} />
+      <input placeholder="Email"
+        onChange={e => setEmp({ ...emp, email: e.target.value })} />
+      <input placeholder="Salary"
+        onChange={e => setEmp({ ...emp, salary: e.target.value })} />
+      <button onClick={submit}>Add Employee</button>
+    </div>
+  );
+}
+
+export default EmployeeForm;
+function EmployeeList({ employees, remove }) {
+  return (
+    <ul>
+      {employees.map(emp => (
+        <li key={emp._id}>
+          {emp.name} - {emp.email} - ₹{emp.salary}
+          <button onClick={() => remove(emp._id)}>Delete</button>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+export default EmployeeList;
+import { useEffect, useState } from "react";
+import api from "./api";
+import EmployeeForm from "./EmployeeForm";
+import EmployeeList from "./EmployeeList";
+
+function App() {
+  const [employees, setEmployees] = useState([]);
+
+  const fetchData = async () => {
+    const res = await api.get("/");
+    setEmployees(res.data);
+  };
+
+  const remove = async (id) => {
+    await api.delete("/" + id);
+    fetchData();
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  return (
+    <div>
+      <h2>Employee Management System</h2>
+      <EmployeeForm refresh={fetchData} />
+      <EmployeeList employees={employees} remove={remove} />
+    </div>
+  );
+}
+
+export default App;
